@@ -16,5 +16,10 @@ namespace SOLIDPrinciples.OCP.GoodPractise
                 shape.Draw(canvas);
             }
         }
+
+        public ICanvas GetCanvas()
+        {
+            return new Canvas();
+        }
     }
 }

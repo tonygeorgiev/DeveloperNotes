@@ -10,7 +10,7 @@ namespace SOLIDPrinciples.OCP.BadPractise
         private IEnumerable<Rectangle> rectangles;
         public void DrawAll()
         {
-            ICanvas canvas = GetCanvas();
+            ICanvas canvas = this.GetCanvas();
             foreach (var line in lines)
             {
                 line.Draw(canvas);
@@ -19,6 +19,11 @@ namespace SOLIDPrinciples.OCP.BadPractise
             {
                 rectangle.Draw(canvas);
             }
+        }
+
+        public ICanvas GetCanvas()
+        {
+            return new Canvas();
         }
     }
 
