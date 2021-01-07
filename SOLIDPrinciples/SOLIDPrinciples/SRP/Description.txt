@@ -1,0 +1,18 @@
+﻿In SRP a reason to change is defined as a responsibility, therefore SRP states, "An object should
+have only one reason to change". If an object has more than one reason to change then it has
+more than one responsibility and is in violation of SRP. An object should have one and only one
+reason to change.
+
+Let's say that we use this BankAccount class for a person’s Checking and Savings account. That
+would cause this class to have more than two reasons to change. This is because Checking
+accounts do not have interest added to them and only Savings accounts have interest added to
+them on a monthly basis or however the bank calculates it.
+Some people may say that the class would even have 3 reasons to change because of the
+Deposit/Withdraw methods as well but I think you can definitely get a little crazy with SRP. That
+being said, I believe it just depends on the context.
+
+So, let's refactor this to be more SRP friendly.
+
+So what we have done is simply create an abstract class out of BankAccount and then created a
+concrete CheckingAccount and SavingsAccount class so that we can isolate the methods that
+are causing more than one reason to change.

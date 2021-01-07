@@ -1,0 +1,29 @@
+﻿Software entities (classes, modules, functions, etc.) should be open
+for extension, but closed for modification.
+
+OCP by Inheritance
+Let’s assume we want to implement a little paint
+application which can draw different shapes in a window.
+At first we start with a single kind of graphical shape,
+namely lines. A line might me defined as follows:
+It has a draw method which expects a canvas as parameter.
+Now our paint application might contain a Painter class which is responsible for managing all
+line objects and which contains a method DrawAll which draws all lines on a canvas.
+This application has been in use for a while. Now all of the sudden the user does not only want
+to paint lines but also rectangles. A naive approach would now be to first implement a new
+class Rectangle similar to the line class which also has a Draw method.
+Next, modify the Painter class to account for the fact that we now also have to manage and
+paint rectangles.
+One can easily see that the Painter class is certainly not adhering to the open/closed principle.
+To be able to manage and paint the rectangles we have to change its source code. As such, the
+Painter class was not closed for modifications.
+Now, we can easily fix this problem by using inheritance. We just define a base class Shape,
+from which all other concrete shapes (e.g. lines and rectangles) inherit. The Painter class then
+only deals with shapes. Let’s first define the (abstract) Shape class.
+All concrete shapes have to inherit from this class. 
+Finally we modify the Painter so it only references shapes and not lines or rectangles.
+If ever the user wants to extend the paint application and have other shapes like ellipses or
+Bezier curves, the Painter class (and especially the DrawAll method) does not have to be
+changed any more. Still, the Painter can draw ellipses or Bezier curves since these new shapes
+will have to inherit from the (abstract) base class Shape. The Painter class is now closed for
+modification but open for extension because we can add other kinds of shapes.
