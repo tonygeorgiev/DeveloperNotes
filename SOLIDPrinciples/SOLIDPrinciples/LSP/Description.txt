@@ -1,0 +1,2 @@
+﻿If you have a base class BASE and subclasses SUB1 and SUB2, the rest of your code should always
+refer to BASE and NOT SUB1 and SUB2.
