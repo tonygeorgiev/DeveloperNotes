@@ -19,3 +19,4 @@ WHERE
         schemas.name = 'zones_ftz214'
     AND tables.name = 'document'
     AND all_columns.name = 'Status'
+    	EXECUTE sp_executesql @sql
