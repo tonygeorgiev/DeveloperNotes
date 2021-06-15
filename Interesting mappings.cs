@@ -1,17 +1,3 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using AutoMapper;
-using FilingPortal.Domain.Mapping.Converters;
-using FilingPortal.Parts.Zones.Ftz214.Domain.Converters;
-using FilingPortal.Parts.Zones.Ftz214.Domain.Dtos;
-using FilingPortal.Parts.Zones.Ftz214.Domain.Entities;
-using Framework.Infrastructure.Extensions;
-
-namespace FilingPortal.Parts.Zones.Ftz214.Domain.Mapping
-{
-    /// <summary>
-    /// Class describing mapping of the domain entities to the view models used in the presentation layer
-    /// </summary>
     public class DTOsToDomainProfile : Profile
     {
         /// <summary>
@@ -39,23 +25,33 @@ namespace FilingPortal.Parts.Zones.Ftz214.Domain.Mapping
                 .ForMember(x => x.FtzOperatorId, opt
                     => opt.ResolveUsing<ClientIdByClientNumberResolver, string>(x => x.SUBMITTER_IRS_NO))
                 .ForMember(x => x.ZoneId, opt => opt.MapFrom(x => x.ZONE_NO))
-                .ForMember(x => x.AdmissionType, opt 
+                .ForMember(x => x.AdmissionType, opt
                     => opt.MapFrom(x => x.CONVEYANCE.FirstOrDefault().ADMISSION_TYPE))
+                .ForMember(x => x.AdmissionNo, opt => opt.MapFrom(x => x.ADMISSION_NO))
+                .ForMember(x => x.AdmissionYear, opt => opt.MapFrom(x => x.ADMISSION_YEAR))
                 .AfterMap((src, dest, context) =>
                 {
-                    FTZ_214FTZ_ADMISSIONCONVEYANCEPTT_INBONDBILL bill = src.CONVEYANCE.FirstOrDefault()?.PTT_INBOND.FirstOrDefault()?.BILL.FirstOrDefault();
+                    List<FTZ_214FTZ_ADMISSIONCONVEYANCEPTT_INBONDBILL> bills = src.CONVEYANCE.FirstOrDefault()?.PTT_INBOND.FirstOrDefault()?.BILL.ToList();
 
-                    if (bill != null && bill.ITEM.SafeAny())
+                    if (bills != null && bills.Any(i => i.ITEM.SafeAny()))
                     {
-                        dest.InboundParsedLines =
-                            context.Mapper.Map<FTZ_214FTZ_ADMISSIONCONVEYANCEPTT_INBONDBILLITEM[], ICollection<InboundParsedLine>>(bill.ITEM);
+                        dest.InboundParsedLines = new List<InboundParsedLine>();
+                        dest.InboundParsedData = new List<InboundParsedData>();
+                        InboundParsedData inboundParsedDataTemplate;
+                        foreach (var bill in bills)
+                        {
+                            inboundParsedDataTemplate = context.Mapper.Map<FTZ_214FTZ_ADMISSIONCONVEYANCEPTT_INBONDBILL, InboundParsedData>(bill);
+                            inboundParsedDataTemplate = context.Mapper.Map<FTZ_214FTZ_ADMISSION, InboundParsedData>(src, inboundParsedDataTemplate);
+                            dest.InboundParsedData.Add(inboundParsedDataTemplate);
+                            foreach (var item in bill.ITEM)
+                            {
+                                InboundParsedLine inboundParsedLineTemplate = context.Mapper.Map<FTZ_214FTZ_ADMISSIONCONVEYANCEPTT_INBONDBILLITEM, InboundParsedLine>(item);
+                                inboundParsedLineTemplate.InvoiceNo = inboundParsedDataTemplate.InvoiceNo;
+                                dest.InboundParsedLines.Add(inboundParsedLineTemplate);
+                            }
+
+                        }
                     }
-
-
-                    dest.InboundParsedData = new InboundParsedData { InboundRecord = dest };
-
-                    context.Mapper.Map(src, dest.InboundParsedData);
-
                 });
 
             CreateMap<FTZ_214FTZ_ADMISSION, InboundParsedData>()
@@ -68,9 +64,8 @@ namespace FilingPortal.Parts.Zones.Ftz214.Domain.Mapping
                 .ForMember(x => x.PartnerKey2, opt => opt.MapFrom(x => x.PARTNER_KEY_2))
                 .ForMember(x => x.PartnerKey3, opt => opt.MapFrom(x => x.PARTNER_KEY_3))
                 .ForMember(x => x.PartnerKey4, opt => opt.MapFrom(x => x.PARTNER_KEY_4))
-                .ForMember(x => x.AdmissionNo, opt => opt.MapFrom(x => x.ADMISSION_NO))
-                .ForMember(x => x.AdmissionYear, opt => opt.MapFrom(x => x.ADMISSION_YEAR))
                 .ForMember(x => x.ZoneNo, opt => opt.MapFrom(x => x.ZONE_NO))
+                .ForMember(x => x.ZonePort, opt => opt.MapFrom(x => x.ZONE_PORT))
                 .ForMember(x => x.DirectDelivery, opt
                     => opt.MapFrom(s => s.DIRECT_DELIVERY == "T" ? "Y" : "N"))
                 .ForMember(x => x.AbiRouting, opt => opt.MapFrom(x => x.ABI_ROUTING))
@@ -108,11 +103,10 @@ namespace FilingPortal.Parts.Zones.Ftz214.Domain.Mapping
                 .ForMember(x => x.ItCarrierCode, opt => opt.MapFrom(x => x.IT_CARRIER_CODE.Trim()))
                 .ForMember(x => x.ItCarrierName, opt => opt.MapFrom(x => x.IT_CARRIER_NAME))
                 .ForMember(x => x.ItFromPort, opt => opt.MapFrom(x => x.IT_FROM_PORT))
-                .ForMember(x => x.ItFromZoneNo, opt => opt.MapFrom(x => x.IT_FROM_ZONE_NO))
-                .AfterMap((src, dest, context) => context.Mapper.Map(src.BILL.FirstOrDefault(), dest));
+                .ForMember(x => x.ItFromZoneNo, opt => opt.MapFrom(x => x.IT_FROM_ZONE_NO));
 
             CreateMap<FTZ_214FTZ_ADMISSIONCONVEYANCEPTT_INBONDBILL, InboundParsedData>()
-                .ForMember(x => x.LineNo, opt => opt.MapFrom(x => x.LINE_NO))
+                .ForMember(x => x.InvoiceNo, opt => opt.MapFrom(x => x.LINE_NO))
                 .ForMember(x => x.Master, opt => opt.MapFrom(x => x.MASTER))
                 .ForMember(x => x.House, opt => opt.MapFrom(x => x.HOUSE))
                 .ForMember(x => x.Qty, opt => opt.MapFrom(x => x.QTY))
@@ -160,6 +154,7 @@ namespace FilingPortal.Parts.Zones.Ftz214.Domain.Mapping
                 .ForMember(x => x.ImporterAcctno, opt => opt.MapFrom(x => x.IMPORTER_ACCTNO))
                 .ForMember(x => x.ImporterAcct, opt => opt.MapFrom(x => x.IMPORTER_ACCT))
                 .ForMember(x => x.ImporterIrsno, opt => opt.MapFrom(x => x.IMPORTER_IRSNO))
+                .ForMember(x => x.ImporterId, opt => opt.ResolveUsing<ClientIdByClientNumberResolver, string>(x => x.IMPORTER_IRSNO))
                 .ForMember(x => x.ProductName, opt => opt.MapFrom(x => x.PRODUCT_NAME))
                 .ForMember(x => x.ProductCountry, opt => opt.MapFrom(x => x.PRODUCT_COUNTRY))
                 .ForMember(x => x.ProductQty, opt => opt.MapFrom(x => x.PRODUCT_QTY))
@@ -177,8 +172,7 @@ namespace FilingPortal.Parts.Zones.Ftz214.Domain.Mapping
 
                     var valueConverter = new WeightConverter(src.GROSS_WGT, WeightConverter.WeightConversionTypes.DecimalNumber);
 
-                    dest.GrossWgt = (int)valueConverter.Weight;
+                    dest.GrossWgt = valueConverter?.Weight;
                 });
         }
     }
-}
