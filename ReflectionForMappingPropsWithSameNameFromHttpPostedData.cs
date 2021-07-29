@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FilingPortal.Domain.DTOs.VesselExport;
 using FilingPortal.PluginEngine.Models;
 using FilingPortal.Web.Models.VesselExport;
@@ -36,7 +36,10 @@ namespace FilingPortal.Web.Mapping
                 else
                 {
                     parsingActions.TryGetValue(prop.PropertyType, out var propertyVal);
-                    prop.SetValue(model, propertyVal.Invoke(data.Fields[prop.Name]?.Value));
+                    if (!string.IsNullOrWhiteSpace(data.Fields[prop.Name]?.Value))
+                    {
+                        prop.SetValue(model, propertyVal.Invoke(data.Fields[prop.Name]?.Value));
+                    }
                 }
                 model.Documents = new List<VesselExportDocumentDto>();
             }
@@ -64,7 +67,10 @@ namespace FilingPortal.Web.Mapping
                 else
                 {
                     parsingActions.TryGetValue(prop.PropertyType, out var propertyVal);
-                    prop.SetValue(model, propertyVal.Invoke(data.Fields[prop.Name]?.Value));
+                    if (!string.IsNullOrWhiteSpace(data.Fields[prop.Name]?.Value))
+                    {
+                        prop.SetValue(model, propertyVal.Invoke(data.Fields[prop.Name]?.Value));
+                    }
                 }
                 model.Documents = new List<VesselExportDocumentDto>();
             }
@@ -75,6 +81,11 @@ namespace FilingPortal.Web.Mapping
             }
 
             return model;
+        }
+        public static string TryGetDocumentValue(IDictionary<string, HttpPostedField> dict, string searchBy)
+        {
+            dict.TryGetValue(searchBy, out HttpPostedField val);
+            return val?.Value;
         }
     }
 }
